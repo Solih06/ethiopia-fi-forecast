@@ -19,10 +19,11 @@ page = st.sidebar.radio("Select Module", [
     "Executive Overview", 
     "Historical Trends & EDA", 
     "Event Association Matrix", 
-    "Inclusion Forecasts (2025–2027)"
+    "Inclusion Forecasts & Policy Targets",
+    "Channel & Demographic Breakdown"
 ])
 
-# Dataset Stubs
+# Stub Datasets
 historical_findex = pd.DataFrame({
     'year': [2011, 2014, 2017, 2021, 2024],
     'ACC_OWNERSHIP': [14.0, 22.0, 35.0, 46.0, 49.0],
@@ -32,12 +33,11 @@ historical_findex = pd.DataFrame({
 
 forecasts_df = pd.DataFrame({
     'year': [2025, 2026, 2027],
-    'ACC_OWNERSHIP_Base': [51.5, 54.2, 57.0],
-    'ACC_OWNERSHIP_Optimistic': [53.5, 58.0, 63.5],
-    'ACC_OWNERSHIP_Pessimistic': [50.0, 51.2, 52.5],
-    'USG_DIGITAL_PAYMENT_Base': [39.0, 43.5, 48.0],
-    'USG_DIGITAL_PAYMENT_Optimistic': [41.0, 47.0, 53.0],
-    'USG_DIGITAL_PAYMENT_Pessimistic': [37.0, 40.0, 43.0]
+    'base': [51.5, 54.2, 57.0],
+    'optimistic': [53.5, 58.0, 63.5],
+    'pessimistic': [50.0, 51.2, 52.5],
+    'ci_lower_95': [48.0, 50.5, 52.0],
+    'ci_upper_95': [55.0, 58.0, 62.0]
 })
 
 if page == "Executive Overview":
@@ -89,39 +89,92 @@ elif page == "Event Association Matrix":
     )
     st.plotly_chart(fig_heat, use_container_width=True)
 
-elif page == "Inclusion Forecasts (2025–2027)":
-    st.header("Task 4: Financial Inclusion Forecasts (2025–2027)")
+elif page == "Inclusion Forecasts & Policy Targets":
+    st.header("Task 4: Financial Inclusion Fan Chart vs. Policy Targets")
     
-    col_ind, col_scen = st.columns(2)
-    selected_ind = col_ind.selectbox("Target Indicator", ["ACC_OWNERSHIP", "USG_DIGITAL_PAYMENT"])
-    selected_scen = col_scen.selectbox("Forecast Scenario", ["Base", "Optimistic", "Pessimistic"])
-    
-    fig_fc = go.Figure()
-    # Historical trace
-    fig_fc.add_trace(go.Scatter(
-        x=historical_findex['year'], 
-        y=historical_findex[selected_ind], 
-        name="Historical (Findex Surveys)", 
-        mode='lines+markers'
+    st.info("""
+    💡 **Stakeholder Guide & Scenario Definitions**:
+    * **Baseline Scenario**: Continuous trend based purely on historical Global Findex trajectory without additional policy shocks.
+    * **Base Scenario**: Incorporates planned policy interventions (Fayda Digital ID rollout, full M-Pesa expansion).
+    * **Optimistic Scenario (+8%)**: Assumes rapid infrastructure deployment, 100% Fayda integration, and high rural adoption.
+    * **Pessimistic Scenario (-8%)**: Reflects macro tailwinds, delayed network coverage expansions, or reduced consumer trust.
+    * **Shaded Fan Band (95% CI)**: Illustrates model uncertainty around forecasts relative to **National Financial Inclusion Strategy (NFIS-II)** targets (60% by 2027, 70% by 2030).
+    """)
+
+    # Interactive Fan Chart
+    fig_fan = go.Figure()
+
+    # Historical
+    fig_fan.add_trace(go.Scatter(
+        x=historical_findex['year'], y=historical_findex['ACC_OWNERSHIP'],
+        name='Historical (Findex)', mode='lines+markers', line=dict(color='blue', width=3)
     ))
-    
-    # Forecast trace
-    target_col = f"{selected_ind}_{selected_scen}"
-    fig_fc.add_trace(go.Scatter(
-        x=forecasts_df['year'], 
-        y=forecasts_df[target_col], 
-        name=f"Forecast Projection ({selected_scen})", 
-        mode='lines+markers', 
-        line=dict(dash='dash', color='orange')
+
+    # Upper/Lower CI (Fan Band)
+    fig_fan.add_trace(go.Scatter(
+        x=forecasts_df['year'], y=forecasts_df['ci_upper_95'],
+        mode='lines', line=dict(width=0), showlegend=False
     ))
-    
-    fig_fc.update_layout(title=f"{selected_ind} Forecast Trajectory ({selected_scen} Scenario)", yaxis_title="Percentage (%)")
-    st.plotly_chart(fig_fc, use_container_width=True)
-    
-    # Download Button
-    st.download_button(
-        label="📥 Download Forecast Results (CSV)",
-        data=forecasts_df.to_csv(index=False),
-        file_name="ethiopia_fi_forecasts_2025_2027.csv",
-        mime="text/csv"
+    fig_fan.add_trace(go.Scatter(
+        x=forecasts_df['year'], y=forecasts_df['ci_lower_95'],
+        mode='lines', line=dict(width=0), fill='tonexty',
+        fillcolor='rgba(255, 165, 0, 0.25)', name='95% Confidence Band'
+    ))
+
+    # Scenarios
+    fig_fan.add_trace(go.Scatter(
+        x=forecasts_df['year'], y=forecasts_df['base'],
+        name='Base Forecast', mode='lines+markers', line=dict(color='orange', width=2, dash='dash')
+    ))
+    fig_fan.add_trace(go.Scatter(
+        x=forecasts_df['year'], y=forecasts_df['optimistic'],
+        name='Optimistic Scenario', mode='lines+markers', line=dict(color='green', width=2, dash='dot')
+    ))
+    fig_fan.add_trace(go.Scatter(
+        x=forecasts_df['year'], y=forecasts_df['pessimistic'],
+        name='Pessimistic Scenario', mode='lines+markers', line=dict(color='red', width=2, dash='dot')
+    ))
+
+    # NFIS Policy Target Reference Line
+    fig_fan.add_hline(y=60.0, line_dash="solid", line_color="purple", annotation_text="2027 NFIS-II Target (60%)")
+
+    fig_fan.update_layout(
+        title="Account Ownership Forecast (2025–2027) with Uncertainty Fan Band vs. Policy Targets",
+        xaxis_title="Year", yaxis_title="Account Ownership Rate (%)"
     )
+    st.plotly_chart(fig_fan, use_container_width=True)
+
+elif page == "Channel & Demographic Breakdown":
+    st.header("Forecast Breakdown by Provider Channel & Demographics")
+    
+    col_a, col_b = st.columns(2)
+    
+    # Provider Channel Distribution Chart
+    with col_a:
+        st.subheader("Mobile Money vs Traditional Bank Channels")
+        channel_df = pd.DataFrame({
+            'Channel': ['Commercial Banks', 'Telebirr (Ethio Telecom)', 'M-Pesa (Safaricom)', 'MFIs & Cooperatives'],
+            'Share_2024': [42, 38, 12, 8],
+            'Projected_Share_2027': [35, 43, 16, 6]
+        })
+        fig_chan = px.bar(
+            channel_df, x='Channel', y=['Share_2024', 'Projected_Share_2027'],
+            barmode='group', title="Market Share Shift by Channel (2024 vs 2027 Projected %)",
+            labels={'value': 'Market Share (%)', 'variable': 'Period'}
+        )
+        st.plotly_chart(fig_chan, use_container_width=True)
+
+    # Gender Inclusion Gap Chart
+    with col_b:
+        st.subheader("Gender Disaggregated Access Gap")
+        gender_df = pd.DataFrame({
+            'Year': [2017, 2021, 2024, 2027],
+            'Male': [41.0, 56.0, 58.0, 65.0],
+            'Female': [29.0, 36.0, 40.0, 49.0]
+        })
+        fig_gen = px.line(
+            gender_df, x='Year', y=['Male', 'Female'], markers=True,
+            title="Gender Gap Projection in Account Access (2017–2027)",
+            labels={'value': 'Inclusion Rate (%)', 'variable': 'Gender Segment'}
+        )
+        st.plotly_chart(fig_gen, use_container_width=True)
