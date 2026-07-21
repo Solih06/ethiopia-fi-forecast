@@ -1,91 +1,103 @@
-
-# Forecasting Financial Inclusion in Ethiopia
-
+## Forecasting Financial Inclusion in Ethiopia (2025–2027)
 An event-augmented time-series forecasting system designed to track, model, and analyze Ethiopia's digital financial transformation. This system bridges the gap between highly sparse demand-side survey data (World Bank Global Findex) and high-frequency supply-side administrative indicators (National Bank of Ethiopia, EthSwitch) to project core inclusion metrics through 2027.
 
 ## 📊 Core Data Framework (Unified Schema)
-
-The architecture utilizes a unified relational data schema where observations, historical events, policy targets, and cross-indicator linkages share a standardized column format. This structurally removes pillar assignment biases and models downstream indicator shocks dynamically.
-
-### Dataset Composition (Post-Enrichment)
+The architecture utilizes a unified relational data schema where observations, historical events, policy targets, and cross-indicator linkages share a standardized column format. This structurally removes pillar assignment biases and dynamically models downstream indicator shocks.
 
 | Record Type | Count | Core Pillars Covered | Primary Purpose |
 | :--- | :---: | :--- | :--- |
-| `observation` | 34 | `access`, `usage`, `infrastructure` | Tracks actual measured historical percentages, transaction volumes, and enabler densities. |
-| `event` | 11 | *Left blank intentionally* | Anchors policy changes, product rollouts (Telebirr, M-Pesa), and structural shocks. |
-| `impact_link` | 15 | `access`, `usage` | Maps specific event shocks to related indicators using comparable market evidence. |
-| `target` | 3 | `access` | Represents official national development goals (e.g., NFIS-II targets). |
+| **`observation`** | 34 | `access`, `usage`, `infrastructure` | Tracks actual measured historical percentages, transaction volumes, and enabler densities. |
+| **`event`** | 11 | *Left blank intentionally* | Anchors policy changes, product rollouts (Telebirr, M-Pesa), and structural shocks. |
+| **`impact_link`** | 15 | `access`, `usage` | Maps specific event shocks to related indicators using comparable market evidence. |
+| **`target`** | 3 | `access` | Represents official national development goals (e.g., NFIS-II targets). |
 
----
+## 📈 Exploratory Analysis & Key Findings
+1. Historical Account Ownership Trajectory (Access)
+Demand-side survey records highlight a critical structural inflection point:
 
-## 📈 Exploratory Analysis & Key Trends
-
-### 1. Historical Account Ownership Trajectory (Access)
-The demand-side survey records highlight a critical structural inflection point:
-
-```text
-  Account Ownership Rate (%)
-  100 |
-   80 |
-   60 |                                         [2024: 49%] -> Stagnation Phase
-   40 |                          [2021: 46%] -------o
-   20 |           [2014: 22%] ------o
-    0 [2011: 14%] ------o
-      +-----------+-----------+-----------+-----------+
+Account Ownership Rate (%)
+ 100 |
+  80 |
+  60 |                                         [2024: 49%] -> Stagnation Phase
+  40 |                           [2021: 46%] -------o
+  20 |           [2014: 22%] ------o
+   0 [2011: 14%] ------o
+     +-----------+-----------+-----------+-----------+
       2011        2014        2017        2021        2024
-  ```
-**The Deceleration Paradox** : While mobile wallets exploded to over 65 million combined users between 2021 and 2024, unique account ownership grew by only +3 percentage points. This highlights a sharp divide between total account registrations and actual unique ownership.
-2. Digital Transactions (Usage Shift)The P2P-ATM Crossover: Interoperable peer-to-peer (P2P) transfers have officially surpassed physical ATM cash withdrawals across the EthSwitch clearing network.  Ecosystem Nuance: Unlike early peer markets, Ethiopia's digital wallets are heavily utilized directly for retail commerce transactions rather than standard domestic transfers alone.  
 
-## 📂 Project Architecture
+**The Deceleration Paradox:** While mobile money registered wallets exploded to over 65 million users between 2021 and 2024, unique account ownership grew by only +3 percentage points (46% to 49%). This highlights a sharp divide between total account registrations (often multi-SIM/wallet holdings) and actual unique adult account ownership.
+
+2. Digital Transactions (Usage Shift)
+The P2P-ATM Crossover: Interoperable peer-to-peer (P2P) transfers across the EthSwitch network have officially surpassed physical ATM cash withdrawals in clearing volume.
+
+Ecosystem Nuance: Unlike early peer market models, Ethiopia's mobile wallets are increasingly used directly for retail merchant payments and utility services.
+
+## 📂 Repository Architecture
 ```text
 ethiopia-fi-forecast/
+├── .github/
+│   └── workflows/
+│       └── unittests.yml               # Automated CI/CD PyTest action
 ├── data/
-│   ├── raw/                      # Baseline and enriched datasets
-│   │   ├── ethiopia_fi_unified_data.csv
-│   │   └── reference_codes.csv
-│   └── processed/                # Model-ready historical intervals
-├── src/                          # Modular production scripts
-│   ├── __init__.py
-│   ├── data_loader.py            # Unified schema parser and filtering tools
-│   ├── enrich_dataset.py         # Task 1 dataset enrichment pipeline
-│   └── run_eda.py                # Task 2 analysis and visualization engine
+│   ├── raw/
+│   │   ├── ethiopia_fi_unified_data.csv# Unified relational dataset
+│   │   └── reference_codes.csv         # Indicator/Event reference mappings
+│   └── processed/                      # Transformed modeling data
 ├── notebooks/
-│   └── 01_exploratory_data_analysis.ipynb
+│   ├── 01_data_exploration_and_enrichment.ipynb
+│   ├── 02_exploratory_data_analysis.ipynb
+│   ├── 03_event_impact_modeling.ipynb
+│   └── 04_forecasting_access_and_usage.ipynb
+├── src/
+│   ├── __init__.py
+│   ├── data_loader.py                  # Dataset parsing & verification
+│   ├── impact_model.py                 # Task 3: Event-Indicator Association Matrix & impact calculations
+│   └── forecaster.py                   # Task 4: Event-Augmented regression forecaster
+├── dashboard/
+│   └── app.py                          # Task 5: Interactive multi-page Streamlit dashboard
+├── tests/
+│   ├── __init__.py
+│   ├── test_data.py                    # Unit tests for data loading pipelines
+│   └── test_model.py                   # Unit tests for forecasting engines
 ├── reports/
-│   └── figures/                  # Output analysis charts (PNG formats)
-│       ├── 01_account_ownership_trajectory.png
-│       └── 02_temporal_coverage_profile.png
-├── data_enrichment_log.md        # Audit tracking for added indicators
-├── requirements.txt              # Project dependency manifest
-└── README.md                     # Documentation entry point
+│   └── figures/                        # Diagnostic plots and chart exports
+├── data_enrichment_log.md              # Enriched schema change logs
+├── requirements.txt                    # Dependency manifest
+└── README.md                           # Documentation entry point
 ```
-## ⚙️ Local Environment & Execution Setup
-Ensure your local Python environment is activated before running the automation layer
-1. Initialize Virtual Environment & Install Tools
+
+## ⚙️ Quickstart Guide
+1. Environment Setup & Dependency Installation
+Run the following commands in your terminal (PowerShell on Windows):
 ```bash
-# Create environment
+# 1. Create a virtual environment
 python -m venv .venv
 
-# Activate environment
-.venv\Scripts\Activate.ps1
+# 2. Activate the virtual environment
+.\.venv\Scripts\Activate.ps1
 
-# Install core dependencies
-pip install -r requirements.txt
+# 3. Install required packages
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
-2. Execute the Data Enrichment Pipeline (Task 1)
-Appends disaggregated Findex microdata rows, infrastructure enabler records, and policy milestones to your raw storage
+
+2. Run Automated Unit Testing Suite
+To test the data processing, event matrix calculations, and model predictions locally:
 ```bash
-python src/enrich_dataset.py
+python -m pytest tests/ -v
 ```
-3. Generate Analytical Visualizations (Task 2)
-Processes the sparse data tracks and exports diagnostic figures directly into reports/figures/
+3. Launch the Interactive Dashboard (Task 5)
+Launch the multi-page Streamlit web app locally:
 ```bash
-python src/run_eda.py
+python -m streamlit run dashboard/app.py
 ```
-## 📑 Next Development Milestones
-Task 3: Build the quantitative Event-Indicator Matrix to estimate shock weights and lag matrices using domestic and regional markers[cite: 1].
+Access the dashboard in your web browser at http://localhost:8501.
 
-Task 4: Deploy event-augmented regression models to project Access and Usage outcomes across base, optimistic, and pessimistic scenarios for 2025–2027[cite: 1].
+## 📑 Completed Development Milestones
+**Task 1: Data Enrichment:** Built the unified relational dataset by joining Global Findex microdata, high-frequency clearing data from EthSwitch, macro proxy series, and peer market benchmarks.
+**Task 2: Exploratory Data Analysis:** Modeled historical trends, investigated the 2021–2024 Access deceleration paradox, and documented the P2P-ATM transaction volume crossover.
+**Task 3: Event Impact Modeling:** Built the EventImpactModel class to quantify policy/product intervention shocks (Telebirr, M-Pesa, Fayda Digital ID, EthSwitch mandate) into an Event-Indicator Association Matrix.
+**Task 4: Forecasting Access & Usage (2025–2027):** Deployed an event-augmented linear regression forecasting engine with Base, Optimistic, and Pessimistic scenario trajectories.
+**Task 5: Interactive Streamlit Dashboard:** Engineered a responsive web application featuring executive KPI summaries, historical trend analyses, heatmaps of event impact matrices, and downloadable forecast data.
 
-Task 5: Build and run the Streamlit interactive dashboard (dashboard/app.py)
+
