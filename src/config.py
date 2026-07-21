@@ -8,9 +8,9 @@ DATA_DIR = os.path.join(BASE_DIR, "data", "raw")
 UNIFIED_DATA_PATH = os.path.join(DATA_DIR, "ethiopia_fi_unified_data.csv")
 REF_CODES_PATH = os.path.join(DATA_DIR, "reference_codes.csv")
 
-# Expected Unified Schema Columns
+# Core Schema Required Columns Across All Record Types
 REQUIRED_COLUMNS = [
-    'record_type', 'indicator_code', 'value_numeric', 'year', 'observation_date'
+    'record_type', 'indicator_code', 'value_numeric'
 ]
 
 # Record Types
