@@ -1,29 +1,36 @@
-name: CI/CD Pipeline - Unit Tests
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  test:
+  quality-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest black ruff mypy -r requirements.txt
 
-      - name: Run PyTest
-        run: |
-          pytest tests/
+    - name: Code Formatting Check (Black)
+      run: black --check src/ tests/
+
+    - name: Linting Check (Ruff)
+      run: ruff check src/ tests/
+
+    - name: Static Type Checking (Mypy)
+      run: mypy src/ --ignore-missing-imports
+
+    - name: Run Pytest Suite
+      run: pytest tests/ -v
