@@ -23,9 +23,7 @@ def load_event_association_matrix(filepath: Optional[str] = None) -> pd.DataFram
 
     missing_cols = set(MatrixConfig.REQUIRED_COLUMNS) - set(df.columns)
     if missing_cols:
-        raise ValueError(
-            f"Matrix dataset missing required columns: {missing_cols}"
-        )
+        raise ValueError(f"Matrix dataset missing required columns: {missing_cols}")
 
     return df
 

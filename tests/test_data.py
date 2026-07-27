@@ -2,6 +2,7 @@ import pytest
 import pandas as pd
 from src.data_loader import DataLoader
 
+
 def test_data_loader_structure():
     loader = DataLoader(data_dir="data/raw")
     try:
