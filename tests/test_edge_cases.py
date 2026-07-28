@@ -49,11 +49,7 @@ def test_scenario_multipliers():
     """Verify scenario multiplier logic."""
     scenario = ScenarioConfig()
     multipliers = scenario.multipliers
-    assert (
-        multipliers["pessimistic"]
-        < multipliers["base"]
-        < multipliers["optimistic"]
-    )
+    assert multipliers["pessimistic"] < multipliers["base"] < multipliers["optimistic"]
 
 
 def test_nfis_target_constant():
@@ -64,6 +60,4 @@ def test_nfis_target_constant():
 def test_indicator_value_bounds():
     """Validate that percentage values remain within legal physical bounds (0-100%)."""
     simulated_values = pd.Series([14.0, 22.0, 49.0, 57.0, 63.5])
-    assert (simulated_values >= 0.0).all() and (
-        simulated_values <= 100.0
-    ).all()
+    assert (simulated_values >= 0.0).all() and (simulated_values <= 100.0).all()

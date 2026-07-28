@@ -41,7 +41,7 @@ This system bridges sparse demand-side survey data (World Bank Global Findex) an
 
 ```bash
 # Clone the repository
-git clone [https://github.com/Soliana/ethiopia-fi-forecast.git](https://github.com/Soliana/ethiopia-fi-forecast.git)
+git clone [https://github.com/Solih06/ethiopia-fi-forecast.git](https://github.com/Soliana/ethiopia-fi-forecast.git)
 cd ethiopia-fi-forecast
 
 # Set up environment and install dependencies
